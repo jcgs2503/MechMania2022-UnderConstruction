@@ -54,6 +54,7 @@ class FooFighters(Strategy):
 
         my_stats = game_state.player_state_list[my_player_index].character_class
         knight_can_center = False
+
         for id, player in enumerate(game_state.player_state_list):
             if id == my_player_index:
                 continue
@@ -68,14 +69,18 @@ class FooFighters(Strategy):
             if best[0] <= state.stat_set.speed: 
                 return Position(best[1][0], best[1][1])
 
-        if knight_can_center and my_pos in self.center_pieces: 
+        if knight_can_center and (my_x, my_y) in self.center_pieces_tuple: 
             possible_moves = self.get_possible_moves(state)
             for move in possible_moves:
-                if move in self.safeties:
+                if (move.x, move.y) in self.safeties_tuple:
                     return move
             
         if (my_x, my_y) in self.center_pieces_tuple:
             return my_pos 
+
+        if (my_x, my_y) in self.safeties_tuple:
+            ind = self.safeties_tuple.index((my_x, my_y))
+            return self.safeties[ind ^ 1]
 
         possible_moves = self.get_possible_moves(state)
 
