@@ -107,8 +107,8 @@ class HeadHunterKnight(Strategy):
     def move_action_decision(self, game_state: GameState, my_player_index: int) -> Position:
         state = game_state.player_state_list[my_player_index]
 
-        Prefered_enemy_list = []
-        Not_prefered_enemy_list = []
+        prefered_enemy_list = []
+        not_prefered_enemy_list = []
         closest_index = 0
         closest_dis = 100
 
@@ -131,21 +131,21 @@ class HeadHunterKnight(Strategy):
             if i != my_player_index:
                 enemy_pos = game_state.player_state_list[i].position
                 if game_state.player_state_list[i].character_class != game.character_class.CharacterClass.KNIGHT:
-                    Prefered_enemy_list.append(i)
+                    prefered_enemy_list.append(i)
                 else:
-                    Not_prefered_enemy_list.append(i)
+                    not_prefered_enemy_list.append(i)
 
-        if Prefered_enemy_list:
-            for i in Prefered_enemy_list:
+        if len(prefered_enemy_list) > 0:
+            for i in prefered_enemy_list:
                 target_pos = game_state.player_state_list[i].position
                 if abs(target_pos.x - my_x) + abs(target_pos.y - my_y) - 1 <= closest_dis:
                     closest_dis = abs(target_pos.x - my_x) + \
-                        abs(target_pos.y - my_y)
-                    closest_index = Prefered_enemy_list[i]
+                        abs(target_pos.y - my_y) - 1
+                    closest_index = i
 
         target_pos = game_state.player_state_list[closest_index].position
 
-        if closest_dis == 2 or 1:
+        if closest_dis == 2 or closest_dis == 1:
             if target_pos.x > my_x:
                 return Position(target_pos.x-1, target_pos.y)
             if target_pos.x == my_x:
@@ -161,7 +161,7 @@ class HeadHunterKnight(Strategy):
             return Position(target_pos.x, target_pos.y)
             # try to chase enemy if they escape
 
-        if Prefered_enemy_list:
+        if len(prefered_enemy_list) > 0:
             if target_pos.x == my_x:
                 if target_pos.y > my_y:
                     return Position(my_x, my_y+2)

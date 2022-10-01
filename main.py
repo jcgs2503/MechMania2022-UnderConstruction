@@ -106,7 +106,7 @@ def main():
     try:
       game_state = parse_json_as_game_state(data)
     except json.JSONDecodeError as e:
-      logging.warn(e)
+      logging.warning(e)
     
     if game_state is None:
       return

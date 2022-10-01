@@ -1,4 +1,6 @@
 from strategy.starter_strategy import StarterStrategy, StupidKnight, HeadHunterKnight
+from strategy.foo_fighters import FooFighters
+
 from strategy.strategy import Strategy
 
 """Return the strategy that your bot should use.
@@ -10,5 +12,5 @@ from strategy.strategy import Strategy
 
 
 def get_strategy(player_index: int) -> Strategy:
+    return FooFighters() if player_index == 3 else StupidKnight()
 
-    return HeadHunterKnight()
