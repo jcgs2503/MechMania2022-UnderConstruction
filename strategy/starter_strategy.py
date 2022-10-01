@@ -9,7 +9,7 @@ from strategy.strategy import Strategy
 
 class StarterStrategy(Strategy):
     def strategy_initialize(self, my_player_index: int):
-        return game.character_class.CharacterClass.WIZARD
+        return game.character_class.CharacterClass.KNIGHT
 
     def move_action_decision(self, game_state: GameState, my_player_index: int) -> Position:
         return game_state.player_state_list[my_player_index].position
