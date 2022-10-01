@@ -7,6 +7,8 @@ from strategy.strategy import Strategy
 
 :returns: A Strategy object.
 """
-def get_strategy(player_index: int) -> Strategy:  
-  
-  return HeadHunterKnight()
+
+
+def get_strategy(player_index: int) -> Strategy:
+
+    return HeadHunterKnight()
