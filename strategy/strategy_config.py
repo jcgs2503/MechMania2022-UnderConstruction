@@ -13,4 +13,3 @@ from strategy.strategy import Strategy
 
 def get_strategy(player_index: int) -> Strategy:
     return FooFighters() if player_index == 3 else StupidKnight()
-
