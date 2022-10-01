@@ -1,4 +1,4 @@
-from strategy.starter_strategy import StarterStrategy
+from strategy.starter_strategy import StarterStrategy, StupidKnight
 from strategy.strategy import Strategy
 
 """Return the strategy that your bot should use.
@@ -9,4 +9,4 @@ from strategy.strategy import Strategy
 """
 def get_strategy(player_index: int) -> Strategy:  
   
-  return StarterStrategy()
+  return StupidKnight()
