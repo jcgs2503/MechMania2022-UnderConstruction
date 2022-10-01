@@ -2,6 +2,7 @@
 # .bat files
 *.bat
 *.sh
+*.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

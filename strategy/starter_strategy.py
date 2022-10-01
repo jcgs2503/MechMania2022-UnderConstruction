@@ -22,6 +22,7 @@ class StarterStrategy(Strategy):
 
     def use_action_decision(self, game_state: GameState, my_player_index: int) -> bool:
         return False
+
 class StupidKnight(Strategy):
 
     def dist(self, p1, p2):
@@ -29,8 +30,6 @@ class StupidKnight(Strategy):
 
     def in_range(self, pos):
         return 0 <= pos.x < 10 and 0 <= pos.y < 10
-
-    
 
     def strategy_initialize(self, my_player_index: int):
         self.center_pieces = [Position(a, b) for a in range(4, 6) for b in range(4, 6)]
