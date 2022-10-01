@@ -82,7 +82,7 @@ class HeadHunterKnight(Strategy):
     def in_range(self, pos):
         return 0 <= pos.x < 10 and 0 <= pos.y < 10
 
-    def in_attack_range(self, pos):
+    def in_attack_range(self, game_state: GameState, my_player_index: int, pos):
         my_pos = game_state.player_state_list[my_player_index].position
         my_x, my_y = my_pos.x, my_pos.y
         my_range = game_state.player_state_list[my_player_index].stat_set.range
@@ -123,7 +123,7 @@ class HeadHunterKnight(Strategy):
         for i in range(0,4):
             if i != my_player_index:
                 enemy_pos = game_state.player_state_list[i].position
-                if game_state.player_state_list[i].character_class != CharacterClass.KNIGHT:
+                if game_state.player_state_list[i].character_class != game.character_class.CharacterClass.KNIGHT:
                     Prefered_enemy_list.append(i)
                 else:
                     Not_prefered_enemy_list.append(i)
@@ -192,9 +192,9 @@ class HeadHunterKnight(Strategy):
         for i in range(0,4):
             if i != my_player_index:
                 enemy_pos = game_state.player_state_list[i].position
-                if in_attack_range(self, enemy_pos):
+                if self.in_attack_range(self, game_state, my_player_index, enemy_pos):
                     attackable = True
-                    if game_state.player_state_list[i].character_class != CharacterClass.KNIGHT:
+                    if game_state.player_state_list[i].character_class != game.character_class.CharacterClass.KNIGHT:
                         Prefered_enemy_list.append(i)
                     else:
                         Not_prefered_enemy_list.append(i)
