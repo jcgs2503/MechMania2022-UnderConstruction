@@ -231,27 +231,38 @@ class Parameters:
 
 
 class BestStepWizard(Strategy):
+    def walk_dist(self, p1, p2):
+        return abs(p1.x - p2.x) + abs(p1.y - p2.y)
+
     def dist(self, p1, p2):
         return max(abs(p1.x - p2.x), abs(p1.y - p2.y))
 
     def man_dist(self, p1, p2):
-        return abs(p1.x-p2.x) - abs(p1.y-p2.y)
+        return abs(p1.x-p2.x) + abs(p1.y-p2.y)
+
+    def attack_dist(self, p1, p2):
+        return max(abs(p1.x - p2.x), abs(p1.y - p2.y))
 
     def in_range(self, pos):
         return 0 <= pos.x < 10 and 0 <= pos.y < 10
 
     def strategy_initialize(self, my_player_index: int):
+        self.parameters = {"kill_params": 1.3, "die_params": 1.8,
+                           "center_params": 2.5, "threshold": -5}
+        self.center_pieces_tuple = [(a, b)
+                                    for a in range(4, 6) for b in range(4, 6)]
         self.center_pieces = [Position(a, b)
-                              for a in range(4, 6) for b in range(4, 6)]
+                              for a, b in self.center_pieces_tuple]
         return game.character_class.CharacterClass.WIZARD
 
     def calculate_point(self, game_state: GameState, my_player_index: int, possible_move: Position):
-        self.center_pieces = [Position(a, b)
-                              for a, b in self.center_pieces_tuple]
         self.center_point = 0
-        for i in self.center_pieces_tuple:
-            if (self.man_dist(possible_move, i) < game_state.player_state_list[my_player_index].stat_set.range):
-                self.center_point += 2
+        speed = game_state.player_state_list[my_player_index].stat_set.speed
+        for i in self.center_pieces:
+            dist = self.man_dist(possible_move, i)
+            if speed > dist:
+                self.center_point += self.parameters["center_params"]*(
+                    speed-dist)/speed
         self.center_point = self.center_point/4
 
         for id, player in enumerate(game_state.player_state_list):
@@ -269,17 +280,18 @@ class BestStepWizard(Strategy):
             for ppm in p_possible_moves:
                 if killable:
                     if self.dist(ppm, possible_move) < my_range:
-                        kill_sum_point += 1
+                        kill_sum_point += self.parameters["kill_params"]
                 else:
                     if self.dist(ppm, possible_move) < my_range:
-                        kill_sum_point += game_state.player_state_list[my_player_index].stat_set.damage/player.health
+                        kill_sum_point += self.parameters["kill_params"] * \
+                            game_state.player_state_list[my_player_index].stat_set.damage/player.health
 
                 if killedable:
                     if self.dist(ppm, possible_move) < p_range:
-                        killed_sum_point -= 1
+                        killed_sum_point -= self.parameters["die_params"]
                 else:
                     if self.dist(ppm, possible_move) < p_range:
-                        killed_sum_point -= player.stat_set.damage / \
+                        killed_sum_point -= self.parameters["die_params"] * player.stat_set.damage / \
                             game_state.player_state_list[my_player_index].health
 
             self.kill_avg_point = kill_sum_point/len(p_possible_moves)
@@ -297,11 +309,15 @@ class BestStepWizard(Strategy):
     def move_action_decision(self, game_state: GameState, my_player_index: int) -> Position:
         my_state = game_state.player_state_list[my_player_index]
         pms = self.get_possible_moves(my_state)
-        max_point = self.calculate_point(my_state, my_player_index, pms[0])
+        max_point = self.calculate_point(game_state, my_player_index, pms[0])
+        max_position = pms[0]
         for i in pms:
-            if self.calculate_point(my_state, my_player_index, i) > max_point:
-                max_point = self.calculate_point(my_state, my_player_index, i)
-        if (max_point < 0):
+            if self.calculate_point(game_state, my_player_index, i) >= max_point:
+                max_point = self.calculate_point(
+                    game_state, my_player_index, i)
+                max_position = i
+        print(max_point)
+        if (max_point < self.parameters["threshold"]):
             if my_player_index == 0:
                 return Position(0, 0)
             elif my_player_index == 1:
@@ -321,11 +337,20 @@ class BestStepWizard(Strategy):
             else:
                 return Position(0, 9)
 
+        return max_position
+
     def attack_action_decision(self, game_state: GameState, my_player_index: int) -> int:
         my_state = game_state.player_state_list[my_player_index]
         can_attack = [(player, i) for i, player in enumerate(game_state.player_state_list) if i !=
                       my_player_index and self.attack_dist(my_state.position, player.position) <= my_state.stat_set.range]
+        can_kill = [(player, i) for player,
+                    i in can_attack if player.health < my_state.stat_set.damage]
+        can_kill.sort(key=lambda x: self.attack_dist(
+            x[0].position, my_state.position))
         can_attack.sort(key=lambda x: x[0].health)
+
+        if len(can_kill) > 0:
+            return can_kill[0][1]
         return can_attack[0][1] if len(can_attack) > 0 else 0
 
     def buy_action_decision(self, game_state: GameState, my_player_index: int) -> Item:

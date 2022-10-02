@@ -1,4 +1,4 @@
-from strategy.starter_strategy import StarterStrategy, StupidKnight, HeadHunterKnight
+from strategy.starter_strategy import StarterStrategy, StupidKnight, HeadHunterKnight, BestStepWizard
 from strategy.foo_fighters import FooFighters
 
 from strategy.strategy import Strategy
@@ -12,4 +12,6 @@ from strategy.strategy import Strategy
 
 
 def get_strategy(player_index: int) -> Strategy:
+    if player_index == 0:
+        return BestStepWizard()
     return FooFighters()
