@@ -1,5 +1,5 @@
 from enum import EnumMeta
-from random import Random
+from random import Random, shuffle
 from game.game_state import GameState
 import game.character_class
 import logging
@@ -9,7 +9,8 @@ from game.item import Item
 from game.position import Position
 from strategy.strategy import Strategy
 
-class FooFighters(Strategy):
+
+class RunDownWizard(Strategy):
 
     def walk_dist(self, p1, p2):
         return abs(p1.x - p2.x) + abs(p1.y - p2.y)
@@ -37,56 +38,26 @@ class FooFighters(Strategy):
         return game.character_class.CharacterClass.WIZARD
 
     def move_action_decision(self, game_state: GameState, my_player_index: int) -> Position:
-        state = game_state.player_state_list[my_player_index]
-        if state.gold >= 8 and state.item == Item.NONE: # go back and buy stuff D: 
-            if my_player_index == 0:
-                return Position(0, 0)
-            elif my_player_index == 1:
-                return Position(9, 0)
-            elif my_player_index == 2:
-                return Position(9, 9)
-            else:
-                return Position(0, 9)
 
-        my_pos = game_state.player_state_list[my_player_index].position
+        state = game_state.player_state_list[my_player_index]
+        my_pos = state.position
         my_x, my_y = my_pos.x, my_pos.y
         
 
-        my_stats = game_state.player_state_list[my_player_index].character_class
+        my_stats = state.character_class
         knight_can_center = False
-
-        for id, player in enumerate(game_state.player_state_list):
-            if id == my_player_index:
-                continue
-            if player.character_class == game.character_class.CharacterClass.KNIGHT and 3 <= player.position.x <= 6 and 3 <= player.position.y <= 6:
-                knight_can_center = True
-
-    
-        if not knight_can_center and (my_x, my_y) in self.safeties_tuple:
-            possible_moves = self.get_possible_moves(state)
-            moves_rankings = sorted([(self.walk_dist(cent, mov), (mov.x, mov.y)) for cent in self.center_pieces for mov in possible_moves])
-            best = moves_rankings[0]
-            if best[0] <= state.stat_set.speed: 
-                return Position(best[1][0], best[1][1])
-
-        if knight_can_center and (my_x, my_y) in self.center_pieces_tuple: 
-            possible_moves = self.get_possible_moves(state)
-            for move in possible_moves:
-                if (move.x, move.y) in self.safeties_tuple:
-                    return move
             
         if (my_x, my_y) in self.center_pieces_tuple:
             return my_pos 
 
-        if (my_x, my_y) in self.safeties_tuple:
-            ind = self.safeties_tuple.index((my_x, my_y))
-            return self.safeties[ind ^ 1]
-
         possible_moves = self.get_possible_moves(state)
-
-        moves_rankings = sorted([( 2 ** (10) * (self.walk_dist(my_pos, safe)) + self.walk_dist(safe, mov), (safe.x, safe.y)) for safe in self.safeties for mov in possible_moves])
+        moves_rankings = [(2 ** (10 + self.walk_dist(cent, my_pos)) + self.walk_dist(cent, mov), (mov.x, mov.y)) \
+            for cent in self.center_pieces for mov in possible_moves \
+            if 1 <= mov.x <= 8 and 1 <= mov.y <= 8]
+        shuffle(moves_rankings)
+        moves_rankings.sort(key = lambda x : x[0])
         best = moves_rankings[0]
-        return Position(best[1][0], best[1][1]) 
+        return Position(best[1][0], best[1][1])
 
         
     def attack_action_decision(self, game_state: GameState, my_player_index: int) -> int:
@@ -97,10 +68,11 @@ class FooFighters(Strategy):
 
     def buy_action_decision(self, game_state: GameState, my_player_index: int) -> Item:
         state = game_state.player_state_list[my_player_index]
-        if state.gold >= 8 and state.item == Item.NONE:
-            return Item.HUNTER_SCOPE
+        if state.gold >= 5 and state.item == Item.NONE:
+            return Item.SPEED_POTION
         return Item.NONE
 
     def use_action_decision(self, game_state: GameState, my_player_index: int) -> bool:
-        return False
+        state = game_state.player_state_list[my_player_index]
+        return state.item == Item.SPEED_POTION
 
